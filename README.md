@@ -88,9 +88,11 @@ curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page
 
 **Example Response:**
 
+
 ```json
 {
-  "artists": [
+  "success": true,
+  "data": [
     {
       "id": 1,
       "name": "Adele",
@@ -102,6 +104,7 @@ curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page
       ...
     }
   ],
+  "error": null,
   "pagination": {
     "page": 1,
     "per_page": 5,
@@ -111,11 +114,22 @@ curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page
 }
 ```
 
+
+**Response Structure:**
+
+- `success` (boolean): Indicates if the request was successful
+- `data` (array): Array of artist objects (empty if error)
+- `error` (string or null): Error message if any, otherwise null
+- `pagination` (object): Pagination metadata (empty object if error)
+
 **Error Responses:**
 
 - `401 Unauthorized`: Not authenticated with Genius
+  - Example: `{ "success": false, "data": [], "error": "Not authenticated with Genius", "pagination": {} }`
 - `400 Bad Request`: Missing or invalid parameters
+  - Example: `{ "success": false, "data": [], "error": "Missing artist name", "pagination": {} }`
 - `502 Bad Gateway`: Genius API error, timeout, or rate limit
+  - Example: `{ "success": false, "data": [], "error": "timeout", "pagination": {} }`
 
 ---
 
