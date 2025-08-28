@@ -54,6 +54,21 @@ bin/rails server
 
 ### 6. API Usage
 
+#### Rate Limiting
+
+The artist search API is rate limited to **10 requests per minute per IP address**. If you exceed this limit, you will receive a 429 error response:
+
+```json
+{
+  "success": false,
+  "data": [],
+  "error": "Rate limit exceeded. Please try again later.",
+  "pagination": {}
+}
+```
+
+Localhost (127.0.0.1) is not rate limited for development convenience.
+
 #### Artist Search Endpoint
 
 **Endpoint:**

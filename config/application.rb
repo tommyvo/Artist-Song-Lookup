@@ -38,5 +38,8 @@ module ArtistSongLookup
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+  # Enable rack-attack middleware for rate limiting
+  config.middleware.use Rack::Attack
   end
 end

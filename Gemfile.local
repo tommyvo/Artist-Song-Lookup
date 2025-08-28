@@ -1,0 +1,4 @@
+# Use rack-attack for rate limiting
+# See: https://github.com/rack/rack-attack
+
+gem 'rack-attack'
