@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe ArtistsController, type: :controller do
+describe Api::V1::ArtistsController, type: :controller do
   describe 'GET #search' do
     it 'returns 401 if not authenticated' do
       get :search, params: { q: 'Adele' }
