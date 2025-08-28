@@ -6,6 +6,12 @@ module Api
         result = ArtistSearchService.new(params, session).call
         render json: result[:json], status: result[:status]
       end
+
+      def songs
+        params.permit(:genius_artist_id, :page, :per_page)
+        result = ArtistSongsService.new(params, session).call
+        render json: result[:json], status: result[:status]
+      end
     end
   end
 end

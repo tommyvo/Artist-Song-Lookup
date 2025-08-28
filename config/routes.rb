@@ -17,7 +17,8 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get "artists/search", to: "artists#search"
+  get "artists/search", to: "artists#search"
+  get "artists/songs", to: "artists#songs"
     end
   end
 end

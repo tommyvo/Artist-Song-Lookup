@@ -1,0 +1,58 @@
+class ArtistSongsService
+  # Handles fetching songs for a Genius artist ID
+  def initialize(params, session)
+    @params = params
+    @session = session
+  end
+
+  def call
+    artist_id = @params[:genius_artist_id].to_s.strip
+    return error_response("Missing or invalid genius_artist_id") if artist_id.blank? || artist_id !~ /^\d+$/
+
+    page = @params[:page].to_i
+    page = 1 if page < 1
+    per_page = @params[:per_page].to_i
+    per_page = 10 if per_page < 1 || per_page > 50
+
+    access_token = @session[:genius_access_token]
+    return error_response("Not authenticated with Genius", :unauthorized) if access_token.blank? || access_token.length > 200
+
+    api_response = GeniusApiService.fetch_artist_songs(artist_id, access_token, page: page, per_page: per_page)
+    if api_response["error"]
+      return error_response(api_response["error"], :bad_gateway)
+    end
+
+    songs = api_response.dig("response", "songs") || []
+    total = api_response.dig("response", "next_page") ? nil : songs.size
+    # Genius API paginates with next_page, so we can't always know total
+
+    {
+      status: :ok,
+      json: {
+        success: true,
+        data: songs,
+        error: nil,
+        pagination: {
+          page: page,
+          per_page: per_page,
+          total: total,
+          next_page: api_response.dig("response", "next_page")
+        }
+      }
+    }
+  end
+
+  private
+
+  def error_response(message, status = :bad_request)
+    {
+      status: status,
+      json: {
+        success: false,
+        data: [],
+        error: message,
+        pagination: {}
+      }
+    }
+  end
+end
