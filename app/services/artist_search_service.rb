@@ -17,6 +17,18 @@ class ArtistSearchService
     access_token = @session[:genius_access_token]
     return error_response("Not authenticated with Genius", :unauthorized) if access_token.blank? || access_token.length > 200
 
+    cache_key = "artist_search:#{query.downcase}:page=#{page}:per_page=#{per_page}"
+
+    # Only check cache after validation and authentication
+    if query.present? && access_token.present?
+      cached = RedisClient.get(cache_key)
+      if cached
+        result = JSON.parse(cached, symbolize_names: true)
+        result[:status] = result[:status].to_sym if result[:status].is_a?(String)
+        return result
+      end
+    end
+
     api_response = GeniusApiService.search_artists(query, access_token, page: page, per_page: per_page)
     if api_response["error"]
       return error_response(api_response["error"], :bad_gateway)
@@ -26,11 +38,11 @@ class ArtistSearchService
     total = hits.size
     paginated = Kaminari.paginate_array(hits).page(page).per(per_page)
 
-    {
+    result = {
       status: :ok,
       json: {
         success: true,
-        data: paginated.map { |hit| hit["result"] },
+        data: paginated.map { |hit| hit["result"].transform_keys(&:to_sym) },
         error: nil,
         pagination: {
           page: paginated.current_page,
@@ -40,6 +52,8 @@ class ArtistSearchService
         }
       }
     }
+    RedisClient.set(cache_key, result.to_json, ex: 600) # 10 minutes
+    result
   end
 
   private

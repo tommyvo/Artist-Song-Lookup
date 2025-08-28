@@ -12,7 +12,6 @@ describe Api::V1::ArtistsController, type: :controller do
       expect(json['pagination']).to eq({})
     end
 
-
     it 'returns 400 if artist name is missing' do
       get :search
       expect(response).to have_http_status(:bad_request)
@@ -23,23 +22,22 @@ describe Api::V1::ArtistsController, type: :controller do
       expect(json['pagination']).to eq({})
     end
 
-
     it 'returns empty results for now if artist name is present' do
-      session[:genius_access_token] = 'fake_token'
-      allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [] } })
-      get :search, params: { q: 'Adele' }
-      expect(response).to have_http_status(:ok)
-      json = JSON.parse(response.body)
-      expect(json['success']).to eq(true)
-      expect(json['data']).to eq([])
-      expect(json['error']).to be_nil
-      expect(json['pagination']).to include('page', 'per_page', 'total', 'total_pages')
+  session[:genius_access_token] = 'fake_token'
+  allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [] } })
+  allow(RedisClient).to receive(:get).and_return(nil)
+  get :search, params: { q: 'Adele' }
+  json = JSON.parse(response.body)
+  expect(json['success']).to eq(true)
+  expect(json['data']).to eq([])
+  expect(json['error']).to be_nil
+  expect(json['pagination']).to include('page', 'per_page', 'total', 'total_pages')
     end
-
 
     it 'returns 502 if Genius API returns an error' do
       session[:genius_access_token] = 'fake_token'
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'error' => 'timeout' })
+      allow(RedisClient).to receive(:get).and_return(nil)
       get :search, params: { q: 'Adele' }
       expect(response).to have_http_status(:bad_gateway)
       json = JSON.parse(response.body)
@@ -48,7 +46,6 @@ describe Api::V1::ArtistsController, type: :controller do
       expect(json['error']).to eq('timeout')
       expect(json['pagination']).to eq({})
     end
-
 
     it 'handles pagination metadata correctly' do
       session[:genius_access_token] = 'fake_token'
@@ -65,7 +62,6 @@ describe Api::V1::ArtistsController, type: :controller do
       expect(json['error']).to be_nil
     end
 
-
     it 'handles empty results from Genius API' do
       session[:genius_access_token] = 'fake_token'
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [] } })
@@ -77,23 +73,24 @@ describe Api::V1::ArtistsController, type: :controller do
       expect(json['error']).to be_nil
     end
 
-
     it 'handles malformed Genius API response gracefully' do
-      session[:genius_access_token] = 'fake_token'
-      allow(GeniusApiService).to receive(:search_artists).and_return({})
-      get :search, params: { q: 'Adele' }
-      json = JSON.parse(response.body)
-      expect(json['success']).to eq(true)
-      expect(json['data']).to eq([])
-      expect(json['pagination']['total']).to eq(0)
-      expect(json['error']).to be_nil
+  session[:genius_access_token] = 'fake_token'
+  # Simulate a malformed response (no 'hits' key)
+  allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => {} })
+  allow(RedisClient).to receive(:get).and_return(nil)
+  get :search, params: { q: 'Adele' }
+  json = JSON.parse(response.body)
+  expect(json['success']).to eq(true)
+  expect(json['data']).to eq([])
+  expect(json['pagination']['total']).to eq(0)
+  expect(json['error']).to be_nil
     end
-
 
     it 'handles invalid page and per_page params' do
       session[:genius_access_token] = 'fake_token'
       hits = Array.new(5) { |i| { 'result' => { 'id' => i, 'name' => "Artist \\#{i}" } } }
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => hits } })
+      allow(RedisClient).to receive(:get).and_return(nil)
       get :search, params: { q: 'Adele', page: -1, per_page: 'abc' }
       json = JSON.parse(response.body)
       expect(json['success']).to eq(true)

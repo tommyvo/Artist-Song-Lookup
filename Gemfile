@@ -54,3 +54,6 @@ end
 gem "kaminari", "~> 1.2"
 
 gem "rack-attack", "~> 6.7"
+
+# For Redis caching
+gem "redis", "~> 5.0"

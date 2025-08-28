@@ -1,4 +1,4 @@
-# Artist-Song-Lookup
+# Artist Song Lookup
 
 ## Setup Instructions
 
@@ -8,6 +8,7 @@
 - Node.js (v18+ recommended)
 - Yarn
 - PostgreSQL
+- Redis (for caching API responses)
 
 ### 1. Install dependencies
 
@@ -53,6 +54,12 @@ bin/rails server
 ```
 
 ### 6. API Usage
+
+#### Caching
+
+Both the Artist Search and Artist Songs API endpoints use Redis to cache responses by query (including pagination parameters) for improved performance and to reduce external API calls. Cached responses are stored for **10 minutes** (TTL). After this period, new requests will fetch fresh data from the Genius API and update the cache.
+
+No manual cache busting is required; cache expiration is handled automatically.
 
 #### Rate Limiting
 
