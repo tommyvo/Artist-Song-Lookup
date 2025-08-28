@@ -128,8 +128,10 @@ curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page
   - Example: `{ "success": false, "data": [], "error": "Not authenticated with Genius", "pagination": {} }`
 - `400 Bad Request`: Missing or invalid parameters
   - Example: `{ "success": false, "data": [], "error": "Missing artist name", "pagination": {} }`
+
 - `502 Bad Gateway`: Genius API error, timeout, or rate limit
-  - Example: `{ "success": false, "data": [], "error": "timeout", "pagination": {} }`
+  - Example (timeout): `{ "success": false, "data": [], "error": "The request to Genius timed out. Please try again later.", "pagination": {} }`
+  - Example (unexpected error): `{ "success": false, "data": [], "error": "An unexpected error occurred while contacting Genius. Please try again later.", "pagination": {} }`
 
 ---
 

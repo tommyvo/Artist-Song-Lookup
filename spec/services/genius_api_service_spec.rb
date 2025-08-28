@@ -17,13 +17,13 @@ describe GeniusApiService do
     it 'returns error on timeout' do
       allow(Net::HTTP).to receive(:start).and_raise(Net::ReadTimeout)
       result = described_class.search_artists(query, access_token)
-      expect(result['error']).to eq('timeout')
+      expect(result['error']).to eq('The request to Genius timed out. Please try again later.')
     end
 
     it 'returns error on other exceptions' do
       allow(Net::HTTP).to receive(:start).and_raise(StandardError.new('fail'))
       result = described_class.search_artists(query, access_token)
-      expect(result['error']).to eq('fail')
+      expect(result['error']).to eq('An unexpected error occurred while contacting Genius. Please try again later.')
     end
   end
 end

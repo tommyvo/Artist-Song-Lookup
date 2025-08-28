@@ -17,9 +17,11 @@ class GeniusApiService
     end
 
     JSON.parse(res.body)
-  rescue Net::OpenTimeout, Net::ReadTimeout
-    { "error" => "timeout" }
+  rescue Net::OpenTimeout, Net::ReadTimeout => e
+    Rails.logger.error("Genius API timeout: #{e.class} - #{e.message}")
+    { "error" => "The request to Genius timed out. Please try again later." }
   rescue => e
-    { "error" => e.message }
+    Rails.logger.error("Genius API error: #{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
+    { "error" => "An unexpected error occurred while contacting Genius. Please try again later." }
   end
 end

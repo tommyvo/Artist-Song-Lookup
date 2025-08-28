@@ -18,6 +18,7 @@ class GeniusOauthService
     })
     JSON.parse(res.body)
   rescue => e
-    { "error" => e.message }
+    Rails.logger.error("Genius OAuth error: #{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
+    { "error" => "An error occurred while connecting to Genius. Please try again later." }
   end
 end

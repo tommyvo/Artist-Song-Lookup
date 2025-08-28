@@ -24,6 +24,6 @@ describe GeniusOauthService do
   it 'returns error on exception' do
     allow(Net::HTTP).to receive(:post_form).and_raise(StandardError.new('fail'))
     result = described_class.exchange_code_for_token(code, redirect_uri)
-    expect(result['error']).to eq('fail')
+    expect(result['error']).to eq('An error occurred while connecting to Genius. Please try again later.')
   end
 end
