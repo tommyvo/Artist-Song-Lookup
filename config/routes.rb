@@ -14,4 +14,6 @@ Rails.application.routes.draw do
 
   get "/callback", to: "oauth#callback"
   get "/auth/genius", to: "oauth#authorize"
+
+  get "/api/artists/search", to: "artists#search"
 end

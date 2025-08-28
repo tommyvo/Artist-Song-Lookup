@@ -40,6 +40,9 @@ group :development, :test do
   # RSpec for testing
   gem "rspec-rails", "~> 8.0"
 
+  # WebMock for stubbing HTTP requests in tests
+  gem "webmock"
+
   gem "dotenv-rails"
 end
 
@@ -47,3 +50,5 @@ group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
+
+gem "kaminari", "~> 1.2"
