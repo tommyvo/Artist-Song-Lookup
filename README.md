@@ -24,7 +24,25 @@ bin/rails db:setup
 yarn build --cwd frontend
 ```
 
-### 4. Running the app
+### 4. Set Genius API Secrets
+
+Set the following environment variables in your shell (example for bash/zsh):
+
+```bash
+export GENIUS_CLIENT_ID=your_client_id
+export GENIUS_CLIENT_SECRET=your_client_secret
+export GENIUS_REDIRECT_URI=http://localhost:3000/callback
+```
+
+Or add them to a `.env` file if you use dotenv or similar.
+
+- `GENIUS_CLIENT_ID`
+- `GENIUS_CLIENT_SECRET`
+- `GENIUS_REDIRECT_URI` (should be `http://localhost:3000/callback` for local dev)
+
+**TODO:** Move these secrets to a secure vault or secret manager for production use.
+
+### 5. Running the app
 ```bash
 bin/rails server
 ```
