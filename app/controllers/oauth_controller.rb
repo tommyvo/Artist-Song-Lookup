@@ -1,21 +1,7 @@
 class OauthController < ApplicationController
   def callback
-    code = params[:code].to_s.strip
-    redirect_uri = ENV["GENIUS_REDIRECT_URI"]
-    if code.blank? || code.length > 200
-      render plain: "Missing or invalid code parameter", status: :bad_request and return
-    end
-
-    response = GeniusOauthService.exchange_code_for_token(code, redirect_uri)
-
-    if response["access_token"]
-      # Store the access token in session (consider using secure, http-only cookies in production)
-      session[:genius_access_token] = response["access_token"]
-      render plain: "OAuth successful! Access token received."
-    else
-      error_message = response["error"] || response["error_description"] || "Unknown error"
-      render plain: "OAuth failed: #{error_message}", status: :unauthorized
-    end
+    result = OauthCallbackService.new(params, session).call
+    render plain: result[:body], status: result[:status]
   end
 
   def authorize
