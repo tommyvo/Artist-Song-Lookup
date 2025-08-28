@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YourApp</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag 'vite/assets/index', media: 'all', 'data-turbo-track': 'reload' %>
+  </head>
+  <body>
+    <div id="root"></div>
+    <%= javascript_include_tag 'vite/assets/index', type: 'module' %>
+    <%= yield %>
+  </body>
+</html>
