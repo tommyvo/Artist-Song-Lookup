@@ -19,7 +19,7 @@ describe Api::V1::ArtistsController, type: :controller do
       json = JSON.parse(response.body)
       expect(json['success']).to eq(false)
       expect(json['data']).to eq([])
-      expect(json['error']).to eq('Missing artist name')
+      expect(json['error']).to eq('Missing or invalid artist name')
       expect(json['pagination']).to eq({})
     end
 

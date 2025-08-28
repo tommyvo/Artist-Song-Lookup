@@ -20,7 +20,7 @@ describe OauthController, type: :controller do
     it 'returns 400 if code param is missing' do
       get :callback
       expect(response).to have_http_status(:bad_request)
-      expect(response.body).to include('Missing code parameter')
+      expect(response.body).to include('Missing or invalid code parameter')
     end
 
     it 'stores access token and renders success if token is received' do

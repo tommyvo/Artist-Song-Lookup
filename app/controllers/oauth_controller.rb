@@ -1,15 +1,15 @@
 class OauthController < ApplicationController
   def callback
-    code = params[:code]
+    code = params[:code].to_s.strip
     redirect_uri = ENV["GENIUS_REDIRECT_URI"]
-    if code.blank?
-      render plain: "Missing code parameter", status: :bad_request and return
+    if code.blank? || code.length > 200
+      render plain: "Missing or invalid code parameter", status: :bad_request and return
     end
 
     response = GeniusOauthService.exchange_code_for_token(code, redirect_uri)
 
     if response["access_token"]
-      # Store the access token in session or database as needed
+      # Store the access token in session (consider using secure, http-only cookies in production)
       session[:genius_access_token] = response["access_token"]
       render plain: "OAuth successful! Access token received."
     else
