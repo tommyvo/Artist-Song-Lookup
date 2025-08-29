@@ -47,11 +47,33 @@ Or add them to a `.env` file if you use dotenv or similar.
 
 **TODO:** Move these secrets to a secure vault or secret manager for production use.
 
-### 5. Running the app
+
+### 5. Running the backend (Rails API)
 
 ```bash
 bin/rails server
 ```
+
+### 6. Running the frontend (React app)
+
+In a separate terminal, start the frontend development server:
+
+```bash
+cd frontend
+yarn dev
+```
+
+This will start the React app at [http://localhost:5173](http://localhost:5173) by default.
+
+The frontend will automatically proxy API and authentication requests to the Rails backend.
+
+---
+
+**Accessing the app:**
+
+- Open [http://localhost:5173](http://localhost:5173) in your browser to use the Artist Song Lookup frontend.
+- If you are not logged in with Genius, you will see a "Log in with Genius" button. Click it to start the OAuth process.
+- After authenticating, you will be redirected to the search page where you can look up songs by artist name.
 
 ## API Usage
 
@@ -118,4 +140,15 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
-For development with hot reloading, run `yarn dev` in the `frontend` directory and proxy API requests to Rails as needed.
+## Development Workflow
+
+**Frontend development (hot reloading):**
+
+- Run `yarn dev` in the `frontend` directory and open [http://localhost:5173](http://localhost:5173) for fast UI development with hot reloading. (Session cookies may not work due to cross-origin restrictions.)
+
+**Full integration testing (backend + cookies):**
+
+- After making frontend changes, run `yarn build` in the `frontend` directory.
+- Access your app at [http://localhost:3000](http://localhost:3000) (served by Rails) to test authentication, cookies, and backend integration. (No hot reloading.)
+
+This is the recommended workflow for Rails + Vite projects.

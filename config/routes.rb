@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
+  # Serve React app at root
+  root to: "static#index"
+
   get "/callback", to: "oauth#callback"
   get "/auth/genius", to: "oauth#authorize"
 
@@ -20,4 +23,7 @@ Rails.application.routes.draw do
       get "artists/search", to: "artists#search"
     end
   end
+
+  # Serve React app for all non-XHR HTML requests (must be last)
+  get "*path", to: "static#index", constraints: ->(req) { !req.xhr? && req.format.html? }
 end
