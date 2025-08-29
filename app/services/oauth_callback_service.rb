@@ -14,7 +14,11 @@ class OauthCallbackService
 
     if response["access_token"]
       @session[:genius_access_token] = response["access_token"]
-      { status: :ok, body: "OAuth successful! Access token received." }
+      if defined?(Rails) && Rails.env.development?
+        { status: :ok, body: "OAuth successful! Access token: #{response["access_token"]}" }
+      else
+        { status: :ok, body: "OAuth successful! Access token received." }
+      end
     else
       error_message = response["error"] || response["error_description"] || "Unknown error"
       { status: :unauthorized, body: "OAuth failed: #{error_message}" }

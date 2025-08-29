@@ -70,16 +70,16 @@ GET http://localhost:3000/api/v1/artists/search?q=ARTIST_NAME
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/v1/artists/search?q=kendrick+lamar" \
-  --cookie "_artist_song_lookup_session=PASTE_YOUR_COOKIE_VALUE_HERE"
+curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele" \
+  -H "Authorization: Bearer YOUR_GENIUS_ACCESS_TOKEN"
 ```
 
-### How to get your session cookie
+### How to get your Genius access token
 
 1. Authenticate with Genius via your browser: [http://localhost:3000/auth/genius](http://localhost:3000/auth/genius)
-2. Open browser dev tools (F12), go to the Application/Storage tab, and find Cookies for `http://localhost:3000`.
-3. Copy the value of the `_artist_song_lookup_session` cookie.
-4. Paste it in the curl command above.
+2. **If you are running in the development environment, the access token will be displayed in the OAuth success message after authentication. You can copy it directly from there.**
+3. In other environments, your access token will be stored in your Rails session or may be available via your app's implementation.
+4. Use the access token in the `Authorization` header as shown above.
 
 **Example Response:**
 
