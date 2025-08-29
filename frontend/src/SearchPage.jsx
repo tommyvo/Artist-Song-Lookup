@@ -9,7 +9,7 @@ function Spinner() {
   );
 }
 
-export default function SearchPage() {
+export default function SearchPage({ setGlobalError }) {
   const [artist, setArtist] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -44,15 +44,21 @@ export default function SearchPage() {
           lastError = 'Artist not found. Retrying...';
           await new Promise(r => setTimeout(r, 700));
         } else {
-          lastError = `Error: ${res.status}`;
+          let errorMsg = `Error: ${res.status}`;
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg += ` - ${errJson.error}`;
+          } catch { /* ignore JSON parse errors for error body */ }
+          lastError = errorMsg;
           break;
         }
       } catch (err) {
-        lastError = err.message;
+        lastError = `Network error: ${err.message}`;
         break;
       }
     }
     setError(lastError || 'Failed to fetch results.');
+    if (setGlobalError && lastError) setGlobalError(lastError);
     setLoading(false);
   };
 

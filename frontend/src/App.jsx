@@ -53,7 +53,7 @@ export default function App() {
           </div>
         ) : (
           <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <SearchPage />
+            <SearchPage setGlobalError={setGlobalError} />
           </div>
         )
       }
