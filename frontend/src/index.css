@@ -74,16 +74,24 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #1976d2 !important; /* Blue when enabled */
+  color: #fff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background 0.2s, opacity 0.2s;
 }
-button:hover {
+button:hover:enabled {
   border-color: #646cff;
+  background-color: #1565c0; /* Slightly darker blue on hover */
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+button:disabled {
+  background-color: #bbb; /* Greyed out when disabled */
+  color: #eee;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 @media (prefers-color-scheme: light) {
@@ -95,6 +103,16 @@ button:focus-visible {
     color: #747bff;
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #1976d2;
+    color: #fff;
+  }
+  button:hover:enabled {
+    background-color: #1565c0;
+  }
+  button:disabled {
+    background-color: #bbb;
+    color: #eee;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 }
