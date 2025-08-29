@@ -53,103 +53,28 @@ Or add them to a `.env` file if you use dotenv or similar.
 bin/rails server
 ```
 
-### 6. API Usage
+## API Usage
 
-#### Caching
-
-Both the Artist Search and Artist Songs API endpoints use Redis to cache responses by query (including pagination parameters) for improved performance and to reduce external API calls. Cached responses are stored for **10 minutes** (TTL). After this period, new requests will fetch fresh data from the Genius API and update the cache.
-
-No manual cache busting is required; cache expiration is handled automatically.
-
-#### Rate Limiting
-
-The artist search API is rate limited to **10 requests per minute per IP address**. If you exceed this limit, you will receive a 429 error response:
-
-```json
-{
-  "success": false,
-  "data": [],
-  "error": "Rate limit exceeded. Please try again later.",
-  "pagination": {}
-}
-```
-
-#### Artist Songs Endpoint
+### Artist Song Lookup Endpoint
 
 **Endpoint:**
 
 ```
-GET http://localhost:3000/api/v1/artists/songs?genius_artist_id=GENIUS_ID
+GET http://localhost:3000/api/v1/artists/search?q=ARTIST_NAME
 ```
 
 **Query Parameters:**
 
-- `genius_artist_id` (required): Genius artist ID (integer)
-- `page` (optional): Page number (default: 1)
-- `per_page` (optional): Results per page (default: 10)
-
-**Authentication:**
-
-- Requires a valid Genius OAuth access token in the session (obtain via `/auth/genius` flow)
+- `q` (required): Artist name to search for (case-insensitive)
 
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/v1/artists/songs?genius_artist_id=123&page=1&per_page=5" \
+curl -X GET "http://localhost:3000/api/v1/artists/search?q=kendrick+lamar" \
   --cookie "_artist_song_lookup_session=PASTE_YOUR_COOKIE_VALUE_HERE"
 ```
 
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    { "id": 1, "title": "Song 1", ... },
-    { "id": 2, "title": "Song 2", ... }
-  ],
-  "error": null,
-  "pagination": {
-    "page": 1,
-    "per_page": 5,
-    "total": 2,
-    "next_page": null
-  }
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: Missing or invalid `genius_artist_id`
-- `401 Unauthorized`: Not authenticated with Genius
-- `502 Bad Gateway`: Genius API error, timeout, or rate limit
-
-#### Artist Search Endpoint
-
-**Endpoint:**
-
-```
-GET http://localhost:3000/api/v1/artists/search
-```
-
-**Query Parameters:**
-
-- `q` (required): Artist name to search for
-- `page` (optional): Page number (default: 1)
-- `per_page` (optional): Results per page (default: 10)
-
-**Authentication:**
-
-- Requires a valid Genius OAuth access token in the session (obtain via `/auth/genius` flow)
-
-**Example Request:**
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page=5" \
-  --cookie "_artist_song_lookup_session=PASTE_YOUR_COOKIE_VALUE_HERE"
-```
-
-#### How to Get Your Session Cookie
+### How to get your session cookie
 
 1. Authenticate with Genius via your browser: [http://localhost:3000/auth/genius](http://localhost:3000/auth/genius)
 2. Open browser dev tools (F12), go to the Application/Storage tab, and find Cookies for `http://localhost:3000`.
@@ -159,175 +84,22 @@ curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page
 **Example Response:**
 
 ```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "Adele",
-      ...
-    },
-    {
-      "id": 2,
-      "name": "Adele Givens",
-      ...
-    }
-  ],
-  "error": null,
-  "pagination": {
-    "page": 1,
-    "per_page": 5,
-    "total": 12,
-    "total_pages": 3
-  }
-}
-```
-
-**Response Structure:**
-
-- `success` (boolean): Indicates if the request was successful
-- `data` (array): Array of artist objects (empty if error)
-- `error` (string or null): Error message if any, otherwise null
-- `pagination` (object): Pagination metadata (empty object if error)
-
-**Error Responses:**
-
-- `401 Unauthorized`: Not authenticated with Genius
-  - Example: `{ "success": false, "data": [], "error": "Not authenticated with Genius", "pagination": {} }`
-- `400 Bad Request`: Missing or invalid parameters
-  - Example: `{ "success": false, "data": [], "error": "Missing artist name", "pagination": {} }`
-
-- `502 Bad Gateway`: Genius API error, timeout, or rate limit
-  - Example (timeout): `{ "success": false, "data": [], "error": "The request to Genius timed out. Please try again later.", "pagination": {} }`
-  - Example (unexpected error): `{ "success": false, "data": [], "error": "An unexpected error occurred while contacting Genius. Please try again later.", "pagination": {} }`
-
-#### Artist Songs Endpoint
-
-**Endpoint:**
-
-```
-GET http://localhost:3000/api/v1/artists/songs?genius_artist_id=GENIUS_ID
-```
-
-**Query Parameters:**
-
-- `genius_artist_id` (required): Genius artist ID (integer)
-- `page` (optional): Page number (default: 1)
-- `per_page` (optional): Results per page (default: 10)
-
-**Authentication:**
-
-- Requires a valid Genius OAuth access token in the session (obtain via `/auth/genius` flow)
-
-**Example Request:**
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/artists/songs?genius_artist_id=123&page=1&per_page=5" \
-  --cookie "_artist_song_lookup_session=PASTE_YOUR_COOKIE_VALUE_HERE"
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    { "id": 1, "title": "Song 1", ... },
-    { "id": 2, "title": "Song 2", ... }
-  ],
-  "error": null,
-  "pagination": {
-    "page": 1,
-    "per_page": 5,
-    "total": 2,
-    "next_page": null
-  }
-}
+[
+  "HUMBLE.",
+  "DNA.",
+  "Alright",
+  ...
+]
 ```
 
 **Error Responses:**
 
-- `400 Bad Request`: Missing or invalid `genius_artist_id`
-- `401 Unauthorized`: Not authenticated with Genius
-- `502 Bad Gateway`: Genius API error, timeout, or rate limit
-Localhost (127.0.0.1) is not rate limited for development convenience.
+- `400 Bad Request`: `{ "error": "Missing or invalid artist name" }`
+- `404 Not Found`: `{ "error": "Artist not found" }`
 
-#### Artist Search Endpoint
+### Caching
 
-**Endpoint:**
-
-```
-GET http://localhost:3000/api/v1/artists/search
-```
-
-**Query Parameters:**
-
-- `q` (required): Artist name to search for
-- `page` (optional): Page number (default: 1)
-- `per_page` (optional): Results per page (default: 10)
-
-**Authentication:**
-
-- Requires a valid Genius OAuth access token in the session (obtain via `/auth/genius` flow)
-
-**Example Request:**
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/artists/search?q=adele&page=1&per_page=5" \
-  --cookie "_artist_song_lookup_session=PASTE_YOUR_COOKIE_VALUE_HERE"
-```
-
-#### How to Get Your Session Cookie
-
-1. Authenticate with Genius via your browser: [http://localhost:3000/auth/genius](http://localhost:3000/auth/genius)
-2. Open browser dev tools (F12), go to the Application/Storage tab, and find Cookies for `http://localhost:3000`.
-3. Copy the value of the `_artist_song_lookup_session` cookie.
-4. Paste it in the curl command above.
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "Adele",
-      ...
-    },
-    {
-      "id": 2,
-      "name": "Adele Givens",
-      ...
-    }
-  ],
-  "error": null,
-  "pagination": {
-    "page": 1,
-    "per_page": 5,
-    "total": 12,
-    "total_pages": 3
-  }
-}
-```
-
-**Response Structure:**
-
-- `success` (boolean): Indicates if the request was successful
-- `data` (array): Array of artist objects (empty if error)
-- `error` (string or null): Error message if any, otherwise null
-- `pagination` (object): Pagination metadata (empty object if error)
-
-**Error Responses:**
-
-- `401 Unauthorized`: Not authenticated with Genius
-  - Example: `{ "success": false, "data": [], "error": "Not authenticated with Genius", "pagination": {} }`
-- `400 Bad Request`: Missing or invalid parameters
-  - Example: `{ "success": false, "data": [], "error": "Missing artist name", "pagination": {} }`
-
-- `502 Bad Gateway`: Genius API error, timeout, or rate limit
-  - Example (timeout): `{ "success": false, "data": [], "error": "The request to Genius timed out. Please try again later.", "pagination": {} }`
-  - Example (unexpected error): `{ "success": false, "data": [], "error": "An unexpected error occurred while contacting Genius. Please try again later.", "pagination": {} }`
+Artist song lookups are cached in Redis for 10 minutes by artist name. No manual cache busting is required; cache expiration is handled automatically.
 
 ---
 
