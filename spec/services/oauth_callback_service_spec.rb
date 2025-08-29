@@ -18,7 +18,7 @@ describe OauthCallbackService do
   it 'stores access token and returns success if token is received' do
     allow(GeniusOauthService).to receive(:exchange_code_for_token).and_return({ 'access_token' => 'abc123' })
     result = described_class.new(params, session).call
-    expect(result[:status]).to eq(:ok)
+  expect(result[:status]).to eq(200)
     expect(result[:body]).to include('OAuth successful')
     expect(session[:genius_access_token]).to eq('abc123')
   end

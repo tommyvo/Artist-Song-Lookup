@@ -1,7 +1,12 @@
 class OauthController < ApplicationController
   def callback
     result = OauthCallbackService.new(params, session).call
-    render plain: result[:body], status: result[:status]
+
+    if result[:status] == 200
+      redirect_to root_path
+    else
+      render plain: result[:body], status: result[:status]
+    end
   end
 
   def authorize

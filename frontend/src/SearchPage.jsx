@@ -1,14 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function Spinner() {
-  return <div style={{ margin: 24 }}><span className="spinner" /></div>;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: 24 }}>
+      <span className="spinner" />
+      <div style={{ marginTop: 12, fontSize: 16, color: '#555' }}>Please wait…</div>
+    </div>
+  );
 }
 
-export default function SearchPage({ token }) {
+export default function SearchPage() {
   const [artist, setArtist] = useState('');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasSession, setHasSession] = useState(false);
+
+  // Check session status from backend
+  useEffect(() => {
+    fetch('/api/v1/session')
+      .then(res => res.ok ? res.json() : { authenticated: false })
+      .then(data => setHasSession(!!data.authenticated))
+      .catch(() => setHasSession(false));
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -19,9 +33,7 @@ export default function SearchPage({ token }) {
     let lastError = null;
     while (attempts < 3) {
       try {
-        const res = await fetch(`/api/v1/artists/search?q=${encodeURIComponent(artist)}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`/api/v1/artists/search?q=${encodeURIComponent(artist)}`);
         if (res.ok) {
           const data = await res.json();
           setResults(data.data.songs);
@@ -43,6 +55,17 @@ export default function SearchPage({ token }) {
     setError(lastError || 'Failed to fetch results.');
     setLoading(false);
   };
+
+  if (!hasSession) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+        <h2>Artist Song Lookup</h2>
+        <a href="/auth/genius" style={{ fontSize: 20, padding: '12px 24px', background: '#fffc', borderRadius: 8, textDecoration: 'none', color: '#222', fontWeight: 600 }}>
+          Log in with Genius
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div>

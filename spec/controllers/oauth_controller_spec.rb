@@ -23,11 +23,11 @@ describe OauthController, type: :controller do
       expect(response.body).to include('Missing or invalid code parameter')
     end
 
-    it 'stores access token and renders success if token is received' do
+    it 'stores access token and redirects to root if token is received' do
       allow(GeniusOauthService).to receive(:exchange_code_for_token).and_return({ 'access_token' => 'abc123' })
       get :callback, params: { code: code }
       expect(session[:genius_access_token]).to eq('abc123')
-      expect(response.body).to include('OAuth successful')
+      expect(response).to redirect_to(root_path)
     end
 
     it 'renders error if token exchange fails' do
