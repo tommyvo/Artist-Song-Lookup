@@ -20,6 +20,10 @@ Bundler.require(*Rails.groups)
 
 module ArtistSongLookup
   class Application < Rails::Application
+    config.after_initialize do
+      Rails.logger.info "App started in #{Rails.env} environment. Redis URL: #{ENV['REDIS_URL'] || 'default'}"
+    end
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 

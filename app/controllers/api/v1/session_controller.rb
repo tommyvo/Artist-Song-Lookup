@@ -2,6 +2,8 @@ module Api
   module V1
     class SessionController < ApplicationController
       def show
+        Rails.logger.info("Session status API called for session id: #{session.id || 'unknown'}")
+
         if session[:genius_access_token].present?
           render json: { authenticated: true }
         else
