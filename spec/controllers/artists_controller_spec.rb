@@ -4,7 +4,7 @@ RSpec.describe Api::V1::ArtistsController, type: :controller do
   describe 'GET #search' do
     let(:artist_name) { 'Kendrick Lamar' }
     let(:artist_id) { 1234 }
-    let(:song_titles) { ['HUMBLE.', 'DNA.', 'Alright'] }
+    let(:song_titles) { [ 'HUMBLE.', 'DNA.', 'Alright' ] }
 
     let(:artist_search_service_double) { instance_double(ArtistSearchService) }
     let(:artist_songs_service_double) { instance_double(ArtistSongsService) }
@@ -14,7 +14,7 @@ RSpec.describe Api::V1::ArtistsController, type: :controller do
         allow(ArtistSearchService).to receive(:new).and_return(artist_search_service_double)
         allow(artist_search_service_double).to receive(:call).and_return({
           json: {
-            data: [{ id: artist_id, name: artist_name, primary_artist: { id: artist_id } }]
+            data: [ { id: artist_id, name: artist_name, primary_artist: { id: artist_id } } ]
           }
         })
         allow(ArtistSongsService).to receive(:new).and_return(artist_songs_service_double)

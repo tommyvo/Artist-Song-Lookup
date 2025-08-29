@@ -84,18 +84,29 @@ curl -X GET "http://localhost:3000/api/v1/artists/search?q=kendrick+lamar" \
 **Example Response:**
 
 ```json
-[
-  "HUMBLE.",
-  "DNA.",
-  "Alright",
-  ...
-]
+{
+  "success": true,
+  "data": {
+    "artist_name": "kendrick lamar",
+    "genius_artist_id": "1234",
+    "songs": [
+      "HUMBLE.",
+      "DNA.",
+      "Alright"
+    ]
+  }
+}
 ```
 
 **Error Responses:**
 
 - `400 Bad Request`: `{ "error": "Missing or invalid artist name" }`
 - `404 Not Found`: `{ "error": "Artist not found" }`
+- `502 Bad Gateway`: `{ "error": "Genius API error: Timeout::Error - execution expired" }`
+
+### Backend Resilience
+
+The backend will automatically retry transient Genius API errors (such as timeouts or network errors) up to 3 times before returning a 502 error. This improves reliability for users and reduces the chance of a failed lookup due to temporary issues with the Genius API.
 
 ### Caching
 

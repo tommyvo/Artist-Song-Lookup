@@ -27,6 +27,22 @@ describe ArtistSearchService do
     expect(result[:json][:success]).to eq(false)
   end
 
+  it 'retries and returns custom error on timeout' do
+    allow(RedisClient).to receive(:get).and_return(nil)
+    call_count = 0
+
+    allow(GeniusApiService).to receive(:search_artists) do
+      call_count += 1
+      { 'error' => 'timeout' }
+    end
+
+    result = described_class.new(params, session).call
+    expect(call_count).to eq(3)
+    expect(result[:status]).to eq(:bad_gateway)
+    expect(result[:json][:error]).to match(/Genius API error: Timeout::Error/)
+    expect(result[:json][:success]).to eq(false)
+  end
+
   it 'returns paginated results on success' do
     hits = Array.new(15) { |i| { 'result' => { id: i, name: "Artist #{i}" } } }
     allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => hits } })
@@ -54,10 +70,25 @@ describe ArtistSearchService do
       }
     end
 
-    it 'writes to cache on cache miss' do
+
+    it 'writes to cache on cache miss for successful lookup' do
       allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [ { 'result' => { id: 1, name: 'Adele' } } ] } })
       expect(RedisClient).to receive(:set).with(cache_key, anything, hash_including(:ex))
+      described_class.new(params, session).call
+    end
+
+    it 'does not write to cache if GeniusApiService returns error' do
+      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow(GeniusApiService).to receive(:search_artists).and_return({ 'error' => 'fail' })
+      expect(RedisClient).not_to receive(:set)
+      described_class.new(params, session).call
+    end
+
+    it 'does not write to cache if GeniusApiService returns no hits' do
+      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [] } })
+      expect(RedisClient).not_to receive(:set)
       described_class.new(params, session).call
     end
 
@@ -69,6 +100,7 @@ describe ArtistSearchService do
     end
   end
 end
+
 describe ArtistSearchService do
   let(:session) { { genius_access_token: 'token' } }
   let(:params) { { q: 'Adele', page: 1, per_page: 10 } }
@@ -137,6 +169,7 @@ describe ArtistSearchService do
       expect(result).to eq(cached_result.deep_symbolize_keys)
     end
   end
+
   describe 'caching' do
     let(:params) { { q: 'Adele', page: 1, per_page: 10 } }
     let(:session) { { genius_access_token: 'token' } }

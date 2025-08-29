@@ -11,7 +11,7 @@ RSpec.describe 'Artists API', type: :request do
   describe 'GET /api/v1/artists/search' do
     let(:artist_name) { 'Kendrick Lamar' }
     let(:artist_id) { 1234 }
-    let(:song_titles) { ['HUMBLE.', 'DNA.', 'Alright'] }
+    let(:song_titles) { [ 'HUMBLE.', 'DNA.', 'Alright' ] }
 
     before do
       allow(ArtistSearchService).to receive(:new).and_call_original
@@ -24,7 +24,7 @@ RSpec.describe 'Artists API', type: :request do
         allow(ArtistSearchService).to receive(:new).and_return(artist_search_double)
         allow(artist_search_double).to receive(:call).and_return({
           json: {
-            data: [{ id: artist_id, name: artist_name, primary_artist: { id: artist_id } }]
+            data: [ { id: artist_id, name: artist_name, primary_artist: { id: artist_id } } ]
           }
         })
 

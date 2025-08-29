@@ -1,3 +1,5 @@
+require "retryable"
+
 class ArtistSearchService
   # Handles all artist search logic, including validation, pagination, and formatting
   def initialize(params, session)
@@ -29,7 +31,22 @@ class ArtistSearchService
       end
     end
 
-    api_response = GeniusApiService.search_artists(query, access_token, page: page, per_page: per_page)
+    api_response = nil
+    begin
+      Retryable.retryable(tries: 3, sleep: ->(n) { 0.5 * (2 ** (n - 1)) }, on: [ Timeout::Error, Errno::ETIMEDOUT ]) do |retries, exception|
+        if exception
+          Rails.logger.info("[ArtistSearchService] Retrying Genius API call (attempt \\#{retries + 1}) due to: \\#{exception.class} - \\#{exception.message}")
+        end
+        api_response = GeniusApiService.search_artists(query, access_token, page: page, per_page: per_page)
+        if api_response["error"]
+          # Only retry on timeout/network errors, not on 4xx/5xx from Genius
+          raise Timeout::Error if api_response["error"].to_s =~ /timeout|timed out|connection|network/i
+        end
+      end
+    rescue => e
+      return error_response("Genius API error: #{e.class} - #{e.message}", :bad_gateway)
+    end
+
     if api_response["error"]
       return error_response(api_response["error"], :bad_gateway)
     end
@@ -52,7 +69,12 @@ class ArtistSearchService
         }
       }
     }
-    RedisClient.set(cache_key, result.to_json, ex: 600) # 10 minutes
+
+    # Only cache successful lookups (no error, at least one hit)
+    if hits.any?
+      RedisClient.set(cache_key, result.to_json, ex: 600) # 10 minutes
+    end
+
     result
   end
 
