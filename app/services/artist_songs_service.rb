@@ -21,7 +21,7 @@ class ArtistSongsService
 
     # Only check cache after validation and authentication
     if artist_id.present? && access_token.present?
-      cached = RedisClient.get(cache_key)
+      cached = $redis_client.get(cache_key)
       if cached
         result = JSON.parse(cached, symbolize_names: true)
         result[:status] = result[:status].to_sym if result[:status].is_a?(String)
@@ -52,7 +52,7 @@ class ArtistSongsService
         }
       }
     }
-    RedisClient.set(cache_key, result.to_json, ex: 600) # 10 minutes
+    $redis_client.set(cache_key, result.to_json, ex: 600) # 10 minutes
     result
   end
 

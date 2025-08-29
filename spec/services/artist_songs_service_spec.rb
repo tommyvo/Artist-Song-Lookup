@@ -19,7 +19,7 @@ describe ArtistSongsService do
   end
 
   it 'returns error if GeniusApiService returns error' do
-    allow(RedisClient).to receive(:get).and_return(nil)
+    allow($redis_client).to receive(:get).and_return(nil)
     allow(GeniusApiService).to receive(:fetch_artist_songs).and_return({ 'error' => 'fail' })
     result = described_class.new(params, session).call
     expect(result[:status]).to eq(:bad_gateway)
@@ -28,20 +28,20 @@ describe ArtistSongsService do
   end
 
   it 'returns songs on success' do
-  songs = [ { id: 1, title: 'Song 1' }, { id: 2, title: 'Song 2' } ]
-  allow(RedisClient).to receive(:get).and_return(nil)
-  allow(GeniusApiService).to receive(:fetch_artist_songs).and_return({ 'response' => { 'songs' => songs, 'next_page' => nil } })
-  result = described_class.new(params, session).call
-  expect(result[:status]).to eq(:ok)
-  expect(result[:json][:success]).to eq(true)
-  expect(result[:json][:data]).to eq(songs)
-  expect(result[:json][:pagination][:page]).to eq(1)
-  expect(result[:json][:pagination][:total]).to eq(2)
-  expect(result[:json][:error]).to be_nil
+    songs = [ { id: 1, title: 'Song 1' }, { id: 2, title: 'Song 2' } ]
+    allow($redis_client).to receive(:get).and_return(nil)
+    allow(GeniusApiService).to receive(:fetch_artist_songs).and_return({ 'response' => { 'songs' => songs, 'next_page' => nil } })
+    result = described_class.new(params, session).call
+    expect(result[:status]).to eq(:ok)
+    expect(result[:json][:success]).to eq(true)
+    expect(result[:json][:data]).to eq(songs)
+    expect(result[:json][:pagination][:page]).to eq(1)
+    expect(result[:json][:pagination][:total]).to eq(2)
+    expect(result[:json][:error]).to be_nil
   end
 
   it 'handles Genius API pagination' do
-    allow(RedisClient).to receive(:get).and_return(nil)
+    allow($redis_client).to receive(:get).and_return(nil)
     allow(GeniusApiService).to receive(:fetch_artist_songs).and_return({ 'response' => { 'songs' => [ { id: 1, title: 'Song 1' } ], 'next_page' => 2 } })
     result = described_class.new(params, session).call
     expect(result[:json][:pagination][:next_page]).to eq(2)
@@ -64,14 +64,14 @@ describe ArtistSongsService do
     end
 
     it 'writes to cache on cache miss' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:fetch_artist_songs).and_return({ 'response' => { 'songs' => [ { id: 1, title: 'Song 1' } ], 'next_page' => nil } })
-      expect(RedisClient).to receive(:set).with(cache_key, anything, hash_including(:ex))
+      expect($redis_client).to receive(:set).with(cache_key, anything, hash_including(:ex))
       described_class.new(params, session).call
     end
 
     it 'returns cached result on cache hit and skips API call' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(cached_result.to_json)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(cached_result.to_json)
       expect(GeniusApiService).not_to receive(:fetch_artist_songs)
       result = described_class.new(params, session).call
       expect(result).to eq(cached_result.deep_symbolize_keys)

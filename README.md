@@ -71,7 +71,7 @@ The frontend will automatically proxy API and authentication requests to the Rai
 
 **Accessing the app:**
 
-- Open [http://localhost:5173](http://localhost:5173) in your browser to use the Artist Song Lookup frontend.
+- Open [http://localhost:5173](http://localhost:3000) in your browser to use the Artist Song Lookup frontend.
 - If you are not logged in with Genius, you will see a "Log in with Genius" button. Click it to start the OAuth process.
 - After authenticating, you will be redirected to the search page where you can look up songs by artist name.
 
@@ -138,19 +138,50 @@ Artist song lookups are cached in Redis for 10 minutes by artist name. No manual
 
 ---
 
-Visit [http://localhost:3000](http://localhost:3000)
+## Real-Time Streaming (ActionCable)
+
+This app supports real-time streaming of large artist song lists using Rails ActionCable and WebSockets. When you search for an artist, results are streamed to the frontend as they are fetched, so you see songs appear incrementally instead of waiting for the full list.
+
+**How it works:**
+- The frontend sends a POST request to `/api/v1/artists/stream_songs` with the artist name.
+- The backend starts a background job to fetch songs from Genius (with retries and pagination).
+- As each page of results is fetched, the backend broadcasts the new songs to a unique ActionCable channel for your search.
+- The React frontend subscribes to this channel and renders results as they arrive.
+
+**Requirements:**
+- Redis must be running (used for both ActionCable and caching).
+- The Rails server must be started with ActionCable enabled (default for Rails 8).
+- The frontend must connect to the correct WebSocket URL (see `frontend/src/consumer.js`).
+
+**Troubleshooting:**
+- If you see a spinner forever, check that Redis is running and that the frontend is connecting to `ws://localhost:3000/cable`.
+- If you see errors about `uninitialized constant ApplicationCable`, make sure you have the standard `app/channels/application_cable/channel.rb` and `connection.rb` files.
+- If you see errors about Redis types, ensure you do not assign a Redis client instance to a constant named `Redis` or `RedisClient`.
 
 ---
 
-## Development Workflow
+## Testing
 
-**Frontend development (hot reloading):**
+To run the test suite:
 
-- Run `yarn dev` in the `frontend` directory and open [http://localhost:5173](http://localhost:5173) for fast UI development with hot reloading. (Session cookies may not work due to cross-origin restrictions.)
+```bash
+bundle exec rspec
+```
 
-**Full integration testing (backend + cookies):**
+**Note:**
+- Specs mock the `$redis_client` global for Redis interactions. If you change the Redis client name, update the specs accordingly.
+- The test suite uses RSpec and WebMock for HTTP stubbing.
 
-- After making frontend changes, run `yarn build` in the `frontend` directory.
-- Access your app at [http://localhost:3000](http://localhost:3000) (served by Rails) to test authentication, cookies, and backend integration. (No hot reloading.)
+---
 
-This is the recommended workflow for Rails + Vite projects.
+## Environment Variables
+
+- `GENIUS_CLIENT_ID`, `GENIUS_CLIENT_SECRET`, `GENIUS_REDIRECT_URI` (see above)
+- `REDIS_URL` (optional, defaults to `redis://localhost:6379/0`)
+
+---
+
+## Notes
+
+- This project uses Rails 8, React 18 (Vite), Redis, and ActionCable.
+- For any issues, check the logs in `log/development.log` and browser console for WebSocket errors.

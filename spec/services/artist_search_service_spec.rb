@@ -19,7 +19,7 @@ describe ArtistSearchService do
   end
 
   it 'returns error if GeniusApiService returns error' do
-    allow(RedisClient).to receive(:get).and_return(nil)
+    allow($redis_client).to receive(:get).and_return(nil)
     allow(GeniusApiService).to receive(:search_artists).and_return({ 'error' => 'fail' })
     result = described_class.new(params, session).call
     expect(result[:status]).to eq(:bad_gateway)
@@ -28,7 +28,7 @@ describe ArtistSearchService do
   end
 
   it 'retries and returns custom error on timeout' do
-    allow(RedisClient).to receive(:get).and_return(nil)
+    allow($redis_client).to receive(:get).and_return(nil)
     call_count = 0
 
     allow(GeniusApiService).to receive(:search_artists) do
@@ -70,30 +70,29 @@ describe ArtistSearchService do
       }
     end
 
-
     it 'writes to cache on cache miss for successful lookup' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [ { 'result' => { id: 1, name: 'Adele' } } ] } })
-      expect(RedisClient).to receive(:set).with(cache_key, anything, hash_including(:ex))
+      expect($redis_client).to receive(:set).with(cache_key, anything, hash_including(:ex))
       described_class.new(params, session).call
     end
 
     it 'does not write to cache if GeniusApiService returns error' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'error' => 'fail' })
-      expect(RedisClient).not_to receive(:set)
+      expect($redis_client).not_to receive(:set)
       described_class.new(params, session).call
     end
 
     it 'does not write to cache if GeniusApiService returns no hits' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [] } })
-      expect(RedisClient).not_to receive(:set)
+      expect($redis_client).not_to receive(:set)
       described_class.new(params, session).call
     end
 
     it 'returns cached result on cache hit and skips API call' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(cached_result.to_json)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(cached_result.to_json)
       expect(GeniusApiService).not_to receive(:search_artists)
       result = described_class.new(params, session).call
       expect(result).to eq(cached_result.deep_symbolize_keys)
@@ -120,7 +119,7 @@ describe ArtistSearchService do
   end
 
   it 'returns error if GeniusApiService returns error' do
-    allow(RedisClient).to receive(:get).and_return(nil)
+    allow($redis_client).to receive(:get).and_return(nil)
     allow(GeniusApiService).to receive(:search_artists).and_return({ 'error' => 'fail' })
     result = described_class.new(params, session).call
     expect(result[:status]).to eq(:bad_gateway)
@@ -156,14 +155,14 @@ describe ArtistSearchService do
     end
 
     it 'writes to cache on cache miss' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [ { 'result' => { id: 1, name: 'Adele' } } ] } })
-      expect(RedisClient).to receive(:set).with(cache_key, anything, hash_including(:ex))
+      expect($redis_client).to receive(:set).with(cache_key, anything, hash_including(:ex))
       described_class.new(params, session).call
     end
 
     it 'returns cached result on cache hit and skips API call' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(cached_result.to_json)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(cached_result.to_json)
       expect(GeniusApiService).not_to receive(:search_artists)
       result = described_class.new(params, session).call
       expect(result).to eq(cached_result.deep_symbolize_keys)
@@ -187,14 +186,14 @@ describe ArtistSearchService do
     end
 
     it 'writes to cache on cache miss' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(nil)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(nil)
       allow(GeniusApiService).to receive(:search_artists).and_return({ 'response' => { 'hits' => [ { 'result' => { 'id' => 1, 'name' => 'Adele' } } ] } })
-      expect(RedisClient).to receive(:set).with(cache_key, anything, hash_including(:ex))
+      expect($redis_client).to receive(:set).with(cache_key, anything, hash_including(:ex))
       described_class.new(params, session).call
     end
 
     it 'returns cached result on cache hit and skips API call' do
-      allow(RedisClient).to receive(:get).with(cache_key).and_return(cached_result.to_json)
+      allow($redis_client).to receive(:get).with(cache_key).and_return(cached_result.to_json)
       expect(GeniusApiService).not_to receive(:search_artists)
       result = described_class.new(params, session).call
       expect(result).to eq(cached_result.deep_symbolize_keys)

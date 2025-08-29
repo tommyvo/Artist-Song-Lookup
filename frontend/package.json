@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rails/actioncable": "^8.0.201",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

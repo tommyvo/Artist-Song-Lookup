@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { subscribeToArtistSongs } from './artistSongsCable';
 
 function Spinner() {
   return (
@@ -24,42 +25,50 @@ export default function SearchPage({ setGlobalError }) {
       .catch(() => setHasSession(false));
   }, []);
 
+  const cableSubRef = useRef(null);
   const handleSearch = async (e) => {
     e.preventDefault();
-    setResults(null);
+    setResults([]);
     setError(null);
     setLoading(true);
-    let attempts = 0;
-    let lastError = null;
-    while (attempts < 3) {
-      try {
-        const res = await fetch(`/api/v1/artists/search?q=${encodeURIComponent(artist)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setResults(data.data.songs);
-          setLoading(false);
-          return;
-        } else if (res.status === 404) {
-          attempts++;
-          lastError = 'Artist not found. Retrying...';
-          await new Promise(r => setTimeout(r, 700));
-        } else {
-          let errorMsg = `Error: ${res.status}`;
-          try {
-            const errJson = await res.json();
-            if (errJson && errJson.error) errorMsg += ` - ${errJson.error}`;
-          } catch { /* ignore JSON parse errors for error body */ }
-          lastError = errorMsg;
-          break;
-        }
-      } catch (err) {
-        lastError = `Network error: ${err.message}`;
-        break;
-      }
+    if (cableSubRef.current) {
+      cableSubRef.current.unsubscribe();
+      cableSubRef.current = null;
     }
-    setError(lastError || 'Failed to fetch results.');
-    if (setGlobalError && lastError) setGlobalError(lastError);
-    setLoading(false);
+    try {
+      const res = await fetch('/api/v1/artists/stream_songs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: artist })
+      });
+      if (!res.ok) {
+        let errorMsg = `Error: ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson && errJson.error) errorMsg += ` - ${errJson.error}`;
+        } catch { /* ignore JSON parse errors for error body */ }
+        setError(errorMsg);
+        setLoading(false);
+        if (setGlobalError) setGlobalError(errorMsg);
+        return;
+      }
+      const { search_id } = await res.json();
+      let allSongs = [];
+      cableSubRef.current = subscribeToArtistSongs(
+        search_id,
+        (songs) => {
+          allSongs = [...allSongs, ...songs];
+          setResults([...allSongs]);
+        },
+        () => {
+          setLoading(false);
+        }
+      );
+    } catch (err) {
+      setError(`Network error: ${err.message}`);
+      setLoading(false);
+      if (setGlobalError) setGlobalError(`Network error: ${err.message}`);
+    }
   };
 
   if (!hasSession) {
@@ -91,7 +100,7 @@ export default function SearchPage({ setGlobalError }) {
       </form>
       {loading && <Spinner />}
       {error && <div style={{ color: 'red', marginTop: 16 }}>{error}</div>}
-      {results && (
+      {results && results.length > 0 && (
         <div style={{ marginTop: 32, textAlign: 'center' }}>
           <h3>Results</h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>

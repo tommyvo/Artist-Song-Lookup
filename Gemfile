@@ -1,4 +1,3 @@
-gem "retryable"
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
@@ -58,3 +57,6 @@ gem "rack-attack", "~> 6.7"
 
 # For Redis caching
 gem "redis", "~> 5.0"
+
+gem "actioncable", "~> 8.0"
+gem "retryable"

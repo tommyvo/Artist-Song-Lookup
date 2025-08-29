@@ -374,6 +374,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  actioncable (~> 8.0)
   brakeman
   debug
   dotenv-rails
