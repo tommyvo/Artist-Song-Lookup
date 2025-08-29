@@ -11,7 +11,7 @@ RSpec.describe 'Artists API', type: :request do
   describe 'GET /api/v1/artists/search' do
     let(:artist_name) { 'Kendrick Lamar' }
     let(:artist_id) { 1234 }
-    let(:song_titles) { [ 'HUMBLE.', 'DNA.', 'Alright' ] }
+    let(:song_titles) { ['HUMBLE.', 'DNA.', 'Alright'] }
 
     before do
       allow(ArtistSearchService).to receive(:new).and_call_original
@@ -24,7 +24,7 @@ RSpec.describe 'Artists API', type: :request do
         allow(ArtistSearchService).to receive(:new).and_return(artist_search_double)
         allow(artist_search_double).to receive(:call).and_return({
           json: {
-            data: [ { id: artist_id, name: artist_name, primary_artist: { id: artist_id } } ]
+            data: [{ id: artist_id, name: artist_name, primary_artist: { id: artist_id } }]
           }
         })
 
@@ -38,11 +38,13 @@ RSpec.describe 'Artists API', type: :request do
         })
       end
 
-      it 'returns a JSON array of song titles' do
+      it 'returns artist name, genius artist id, and a JSON array of song titles' do
         get '/api/v1/artists/search', params: { q: artist_name }
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
-        expect(json['data']).to eq(song_titles)
+        expect(json['data']['artist_name']).to eq(artist_name.downcase)
+        expect(json['data']['genius_artist_id']).to eq(artist_id.to_s)
+        expect(json['data']['songs']).to eq(song_titles)
       end
     end
 

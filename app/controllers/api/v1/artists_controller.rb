@@ -15,7 +15,7 @@ module Api
             # Use ArtistSearchService to get artist id from Genius
             search_result = ArtistSearchService.new({ q: query }, session).call
             first_hit = search_result.dig(:json, :data)&.first
-            artist_id = first_hit&.dig(:primary_artist, :id) || first_hit&.dig(:primary_artist_id) || first_hit&.dig(:id)
+            artist_id = first_hit&.dig(:primary_artist, :id)
 
             if artist_id.nil?
               return render json: { success: false, error: "Artist not found", data: [] }, status: :not_found
@@ -47,7 +47,14 @@ module Api
             RedisClient.set(songs_cache_key, song_titles.to_json, ex: 600)
           end
 
-          render json: { success: true, data: song_titles }, status: :ok
+          render json: {
+            success: true,
+            data: {
+              artist_name: query,
+              genius_artist_id: artist_id.to_s,
+              songs: song_titles
+            }
+          }, status: :ok
         rescue => e
           render json: { error: "Internal server error" }, status: :internal_server_error
         end
