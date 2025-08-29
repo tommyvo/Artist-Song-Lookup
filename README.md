@@ -63,7 +63,7 @@ cd frontend
 yarn dev
 ```
 
-This will start the React app at [http://localhost:5173](http://localhost:5173) by default.
+This will start the React app at [http://localhost:5173](http://localhost:5173) by default. This will have hot reloading, but won't see the Rails session cookie, so API calls won't work.
 
 The frontend will automatically proxy API and authentication requests to the Rails backend.
 
@@ -71,7 +71,7 @@ The frontend will automatically proxy API and authentication requests to the Rai
 
 **Accessing the app:**
 
-- Open [http://localhost:5173](http://localhost:3000) in your browser to use the Artist Song Lookup frontend.
+- Open [http://localhost:3000](http://localhost:3000) in your browser to use the Artist Song Lookup frontend. Accessing from the Rails server will have session cookie support, and API calls will work after OAuth authentication.
 - If you are not logged in with Genius, you will see a "Log in with Genius" button. Click it to start the OAuth process.
 - After authenticating, you will be redirected to the search page where you can look up songs by artist name.
 
@@ -174,14 +174,19 @@ bundle exec rspec
 
 ---
 
-## Environment Variables
+## Development Notes: Rails vs. Vite Frontend
 
-- `GENIUS_CLIENT_ID`, `GENIUS_CLIENT_SECRET`, `GENIUS_REDIRECT_URI` (see above)
-- `REDIS_URL` (optional, defaults to `redis://localhost:6379/0`)
+- **localhost:3000** (Rails server):
+  - Serves the built React frontend (from `frontend/dist`) and the Rails API.
+  - Session cookies and authentication work as expected.
+  - Use this for full integration testing (auth, cookies, API, ActionCable, etc).
 
----
+- **localhost:5173** (Vite dev server):
+  - Provides hot reloading and a fast React development experience.
+  - API requests are proxied to the Rails backend, but session cookies may not be sent due to cross-origin restrictions.
+  - You may not be authenticated, and some API calls may fail unless you manually handle cookies or use the Rails server.
+  - Use this for rapid UI development, but switch to `localhost:3000` to test authentication and real-time features.
 
-## Notes
-
-- This project uses Rails 8, React 18 (Vite), Redis, and ActionCable.
-- For any issues, check the logs in `log/development.log` and browser console for WebSocket errors.
+**Tip:**
+- Always run `yarn build --cwd frontend` after frontend changes to update the assets served by Rails.
+- For most accurate testing, use [http://localhost:3000](http://localhost:3000) in your browser.
